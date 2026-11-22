@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="data:,">
+<title>Night Vault - a stealth heist game</title>
+<style>
+ html,body{margin:0;padding:0;background:#07090f;color:#eceff1;font-family:ui-monospace,Menlo,Consolas,monospace;}
+ body{display:flex;flex-direction:column;align-items:center;min-height:100vh;}
+ header{padding:10px 0 4px;text-align:center} header h1{margin:0;font-size:22px;letter-spacing:3px;color:#ffd54f}
+ header p{margin:2px 0 6px;font-size:12px;color:#90a4ae}
+ canvas{background:#0b0e14;border:2px solid #37474f;border-radius:8px;max-width:98vw;height:auto;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+ footer{font-size:12px;color:#78909c;padding:8px;text-align:center;max-width:900px}
+ kbd{background:#263238;border:1px solid #546e7a;border-radius:4px;padding:0 5px}
+</style></head><body>
+<header><h1>NIGHT VAULT</h1><p>A top-down stealth heist - steal the museum, crack the vault, vanish.</p></header>
+<canvas id="game" width="1280" height="720"></canvas>
+<footer>Move <kbd>W A S D</kbd>/<kbd>Arrows</kbd> &middot; Sneak <kbd>Shift</kbd> &middot; Interact / crack vault <kbd>E</kbd> (hold) &middot; Pause <kbd>P</kbd>/<kbd>Esc</kbd> &middot; Start <kbd>Enter</kbd>. Avoid vision cones and lasers, use panels to disable security, loot everything, escape to the van. Tip: append <kbd>?seed=3</kbd> for a different night.</footer>
+<script type="module" src="./src/main.js"></script>
+</body></html>
