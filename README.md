@@ -2,6 +2,7 @@
 
 [![make.fun · best-heist-game-20261122-0559](https://make.fun/badge/best-heist-game-20261122-0559.svg)](https://make.fun/bounty/best-heist-game-20261122-0559?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
 [![rank](https://make.fun/badge/best-heist-game-20261122-0559/irawanjong-commits/night-vault/rank.svg)](https://make.fun/bounty/best-heist-game-20261122-0559/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
+[![reward](https://make.fun/badge/best-heist-game-20261122-0559/irawanjong-commits/night-vault/reward.svg)](https://make.fun/bounty/best-heist-game-20261122-0559?utm_source=github&utm_medium=readme&utm_campaign=best-heist-game-20261122-0559)
 
 **Night Vault** is an original top-down 2D stealth heist game in vanilla JavaScript
 (HTML canvas, no libraries, no network). One thief, one museum at night: cross eight
