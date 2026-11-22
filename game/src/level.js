@@ -65,6 +65,15 @@ export function buildLevel(seed){
   vault:{x:2340,y:1010,w:110,h:110,cracked:false,progress:0},
   exit:{x:70,y:620,w:110,h:110}, start:{x:120,y:665}};
 }
+// World geometry for the HUD minimap: overall size + room rectangles
+// (x/y/w/h in world coordinates, matching the divider layout in buildLevel).
+export const WORLD={w:2560,h:1440};
+export const ROOM_RECTS=[
+ {x:28,y:28,w:612,h:692},{x:28,y:748,w:612,h:664},
+ {x:668,y:28,w:612,h:692},{x:668,y:748,w:612,h:664},
+ {x:1308,y:28,w:612,h:692},{x:1308,y:748,w:612,h:664},
+ {x:1948,y:28,w:584,h:692},{x:1948,y:748,w:584,h:664},
+];
 export const ROOM_LABELS=[
  {x:330,y:90,t:"WEST GALLERY"},{x:960,y:90,t:"SCULPTURE HALL"},{x:1600,y:90,t:"EAST GALLERY"},
  {x:330,y:780,t:"ARCHIVE WING"},{x:960,y:780,t:"COIN ROOM"},{x:1600,y:780,t:"JEWEL VAULT HALL"},

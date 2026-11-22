@@ -1,5 +1,5 @@
 // Night Vault - main game logic: stealth, vision cones, alarm, vault crack, escape.
-import { buildLevel, ROOM_LABELS } from "./level.js";
+import { buildLevel, ROOM_LABELS, ROOM_RECTS, WORLD } from "./level.js";
 import { Sfx } from "./audio.js";
 const cv=document.getElementById("game"), ctx=cv.getContext("2d");
 const VW=1280, VH=720;
@@ -213,6 +213,56 @@ function drawWorld(){
 }
 function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); }
 function prompt(t){ ctx.fillStyle="rgba(0,0,0,0.75)"; const w=ctx.measureText(t).width+36; roundRect(VW/2-260,VH-118,520,44,10); ctx.fill(); ctx.fillStyle="#ffd54f"; ctx.font="bold 19px monospace"; ctx.textAlign="center"; ctx.fillText(t,VW/2,VH-89); }
+// ---------- minimap (live HUD overview of the whole museum) ----------
+// Rendered in screen space in the bottom-right corner at a fixed scale:
+// room outlines, un-looted loot (gold), guards (red), the vault, the getaway
+// van, and the thief (bright pulsing dot). Reads only live game state, so it
+// updates every frame and also shows in the deterministic ?shot= scenes.
+const MM_W=256, MM_H=144, MM_SCALE=MM_W/WORLD.w; // 2560x1440 -> 256x144
+function drawMinimap(){
+ const mx=VW-MM_W-14, my=VH-MM_H-14;
+ const px=x=>mx+x*MM_SCALE, py=y=>my+y*MM_SCALE;
+ // panel backing + border (gold while the vault is still shut, green once cracked)
+ ctx.fillStyle="rgba(5,7,12,0.86)"; roundRect(mx-6,my-22,MM_W+12,MM_H+28,8); ctx.fill();
+ ctx.strokeStyle=L.vault.cracked?"#2e7d46":"#8a6d1f"; ctx.lineWidth=1.5; roundRect(mx-6,my-22,MM_W+12,MM_H+28,8); ctx.stroke();
+ ctx.fillStyle="#ffd54f"; ctx.font="bold 11px monospace"; ctx.textAlign="left";
+ ctx.fillText("MINIMAP",mx,my-8);
+ ctx.fillStyle="#cfd8dc"; ctx.font="10px monospace"; ctx.textAlign="right";
+ ctx.fillText(L.vault.cracked?"VAULT OPEN":"vault: east",mx+MM_W,my-8);
+ // room outlines
+ ctx.strokeStyle="rgba(160,180,210,0.55)"; ctx.lineWidth=1;
+ for(const r of ROOM_RECTS) ctx.strokeRect(px(r.x),py(r.y),r.w*MM_SCALE,r.h*MM_SCALE);
+ // solid walls as faint blocks so corridors/door gaps read at a glance
+ ctx.fillStyle="rgba(120,135,165,0.35)";
+ for(const w of L.walls){ if(w.case) continue; ctx.fillRect(px(w.x),py(w.y),Math.max(1,w.w*MM_SCALE),Math.max(1,w.h*MM_SCALE)); }
+ // getaway van / exit (green block + label)
+ const ex=L.exit; ctx.fillStyle="#2e7d46"; ctx.fillRect(px(ex.x),py(ex.y),ex.w*MM_SCALE,ex.h*MM_SCALE);
+ ctx.strokeStyle="#7ee787"; ctx.lineWidth=1; ctx.strokeRect(px(ex.x),py(ex.y),ex.w*MM_SCALE,ex.h*MM_SCALE);
+ // vault (gold square with a dark $ once cracked it flashes green/gold)
+ const v=L.vault, blink=L.vault.cracked&&(Math.floor(elapsed*2)%2===0);
+ ctx.fillStyle=blink?"#7ee787":"#ffd54f"; ctx.fillRect(px(v.x),py(v.y),v.w*MM_SCALE,v.h*MM_SCALE);
+ ctx.fillStyle="#11151c"; ctx.font="bold 9px monospace"; ctx.textAlign="center";
+ ctx.fillText("$",px(v.x+v.w/2),py(v.y+v.h/2)+3);
+ // un-looted loot (gold dots; taken loot disappears)
+ ctx.fillStyle="#ffca28";
+ for(const it of L.loot){ if(it.taken) continue; ctx.beginPath(); ctx.arc(px(it.x),py(it.y),2.4,0,7); ctx.fill(); }
+ // guards (red dots, brighter ring while that guard can see the thief)
+ for(const g of guards){ const seen=seenByGuard(g)>0;
+  ctx.fillStyle="#ff1744"; ctx.beginPath(); ctx.arc(px(g.x),py(g.y),3,0,7); ctx.fill();
+  if(seen){ ctx.strokeStyle="#ff8a80"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px(g.x),py(g.y),5.5,0,7); ctx.stroke(); } }
+ // cameras (small amber squares, grey while disabled from a panel)
+ const camActive=elapsed>=camOffUntil;
+ ctx.fillStyle=camActive?"#ffb300":"#616161";
+ for(const c of cams) ctx.fillRect(px(c.x)-2,py(c.y)-2,4,4);
+ // thief: bright white/gold pulsing dot on top of everything else
+ const pulse=2.6+Math.sin(elapsed*5)*0.7;
+ ctx.fillStyle="rgba(255,213,79,0.35)"; ctx.beginPath(); ctx.arc(px(player.x),py(player.y),pulse+3.4,0,7); ctx.fill();
+ ctx.fillStyle="#ffffff"; ctx.beginPath(); ctx.arc(px(player.x),py(player.y),pulse,0,7); ctx.fill();
+ ctx.strokeStyle="#ffd54f"; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(px(player.x),py(player.y),pulse,0,7); ctx.stroke();
+ // camera viewport rectangle so the player can place the main view
+ const c=cam(); ctx.strokeStyle="rgba(255,255,255,0.4)"; ctx.lineWidth=1;
+ ctx.strokeRect(px(c.x),py(c.y),VW*MM_SCALE,VH*MM_SCALE);
+}
 function drawHUD(){
  // top bar
  ctx.fillStyle="rgba(8,10,16,0.82)"; ctx.fillRect(0,0,VW,64);
@@ -234,6 +284,7 @@ function drawHUD(){
  ctx.fillText(obj,26,VH-27);
  if(elapsed<camOffUntil){ ctx.fillStyle="#80cbc4"; ctx.fillText("Cameras OFF "+Math.ceil(camOffUntil-elapsed)+"s",1000,VH-27); }
  if(msgT>0){ ctx.fillStyle="rgba(0,0,0,0.78)"; roundRect(VW/2-330,76,660,42,10); ctx.fill(); ctx.fillStyle="#ffd54f"; ctx.font="bold 18px monospace"; ctx.textAlign="center"; ctx.fillText(msg,VW/2,103); }
+ drawMinimap();
  if(paused) overlay("PAUSED","Press P or click to resume");
 }
 function fmtTime(s){ const m=Math.floor(s/60), ss=Math.floor(s%60); return m+":"+String(ss).padStart(2,"0"); }
